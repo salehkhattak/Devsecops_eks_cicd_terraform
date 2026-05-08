@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    message TEXT,
+    author VARCHAR(255) DEFAULT 'Anonymous',
+    likes INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

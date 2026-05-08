@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Message Board</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-comment-dots"></i> Message Board</h1>
+        
+        <div class="message-form">
+            <h3>Share your thoughts</h3>
+            <form id="messageForm">
+                <div class="input-group">
+                    <input type="text" name="author" placeholder="Your Name (optional)" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <textarea name="new_message" rows="3" placeholder="What's on your mind?" required></textarea>
+                </div>
+                <button type="submit">Post Message</button>
+            </form>
+        </div>
+        
+        <h3 class="section-title">Community Highlights</h3>
+        <div class="messages-list" id="messages">
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="message-card">
+                    <div class="message-header">
+                        <div class="message-author">
+                            <span class="avatar">{{ msg.author[0] | upper if msg.author else 'A' }}</span>
+                            {{ msg.author }}
+                        </div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> 
+                            {{ msg.created_at.strftime('%Y-%m-%d %H:%M') if msg.created_at else 'Just now' }}
+                        </div>
+                    </div>
+                    <div class="message-body">
+                        {{ msg.message }}
+                    </div>
+                    <div class="message-footer">
+                        <button class="like-btn" data-id="{{ msg.id }}">
+                            <i class="far fa-heart"></i>
+                            <span class="like-count">{{ msg.likes }}</span>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox fa-3x" style="margin-bottom: 15px; color: #cbd5e1;"></i>
+                    <p>No messages yet. Be the first to break the ice!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

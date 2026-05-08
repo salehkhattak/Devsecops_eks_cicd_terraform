@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: flask-sql-namespace
+spec:
+  replicas: 1  # Added replicas
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        env:
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_ROOT_PASSWORD
+          value: "admin"
+        - name: MYSQL_DATABASE
+          value: "mydb"
+        - name: MYSQL_USER
+          value: "admin"
+        - name: MYSQL_PASSWORD
+          value: "admin"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysqldata
+          mountPath: /var/lib/mysql
+        # Add health checks
+        readinessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -uroot
+            - -padmin
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -uroot
+            - -padmin
+          initialDelaySeconds: 60
+          periodSeconds: 20
+      volumes:
+      - name: mysqldata
+        persistentVolumeClaim:
+          claimName: mysql-pvc

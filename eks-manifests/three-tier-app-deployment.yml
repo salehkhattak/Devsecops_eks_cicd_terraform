@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: three-tier-flask-app
+  labels:
+    app: three-tier-flask-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: three-tier-flask-app
+  template:
+    metadata:
+      labels:
+        app: three-tier-flask-app
+    spec:
+      containers:
+        - name: three-tier-flask-app
+          image: salehktk005/saleh-thoughts-app:latest
+          env:
+            - name: MYSQL_HOST
+              value: mysql-svc          # this is your mysql's service clusture IP, Make sure to change it with yours
+            - name: MYSQL_PASSWORD
+              value: "admin"
+            - name: MYSQL_USER
+              value: "admin"
+            - name: MYSQL_DB
+              value: "mydb"
+          ports:
+            - containerPort: 5000
+          imagePullPolicy: Always
