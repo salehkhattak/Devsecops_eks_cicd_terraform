@@ -5,13 +5,13 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = "myflask-app"
-        DOCKER_IMAGE = "salehktk005/myflask-app"
+        APP_NAME         = "myflask-app"
+        DOCKER_IMAGE     = "salehktk005/myflask-app"
         DOCKER_CREDENTIALS = "dockerHubCreds"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG        = "${BUILD_NUMBER}"
     }
 
-        stages {
+    stages {
 
         stage("Code Clone") {
             steps {
@@ -25,10 +25,11 @@ pipeline {
                 sh "docker --version"
             }
         }
+
         stage("Shared Library Test") {
             steps {
                 script {
-                    call()
+                    test()
                 }
             }
         }
@@ -88,28 +89,10 @@ pipeline {
 
     post {
         success {
-            echo "SUCCESS"
+            echo "Pipeline SUCCEEDED - ${APP_NAME}:${IMAGE_TAG}"
         }
-
         failure {
-            echo "FAILED"
+            echo "Pipeline FAILED - ${APP_NAME}:${IMAGE_TAG}"
         }
     }
 }
-    // post {
-    //     success {
-    //         emailext(
-    //             to: 'salehktk005@gmail.com',
-    //             subject: "SUCCESS: Build ${BUILD_NUMBER}",
-    //             body: "Deployment SUCCESSFUL for ${APP_NAME}:${BUILD_NUMBER}"
-    //         )
-    //     }
-
-    //     failure {
-    //         emailext(
-    //             to: 'salehktk005@gmail.com',
-    //             subject: "FAILED: Build ${BUILD_NUMBER}",
-    //             body: "Pipeline FAILED for ${APP_NAME}:${BUILD_NUMBER}"
-    //         )
-    //     }
-    // }

@@ -1,10 +1,10 @@
-def call(String imageName) {
+def call() {
 
     echo "Starting Security Scans..."
 
     sonarScan()
     owaspScan()
-    trivyScan(imageName)
+    trivyScan()
 
     echo "All security scans completed."
 }

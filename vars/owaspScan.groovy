@@ -1,9 +1,9 @@
-def owasp_scan() {
+def call() {
     sh """
-    dependency-check.sh \
-    --project "three-tier-app" \
-    --scan . \
-    --format HTML \
+    dependency-check.sh \\
+    --project "three-tier-app" \\
+    --scan . \\
+    --format HTML \\
     --out reports
     """
 }
