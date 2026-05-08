@@ -2,7 +2,7 @@
 
 pipeline {
 
-    // agent { label "dev" }
+    agent any
 
     environment {
         APP_NAME = "myflask-app"
@@ -25,6 +25,14 @@ pipeline {
         stage("Docker Check") {
             steps {
                 sh "docker --version"
+            }
+        }
+
+        stage("OWASP Dependency Check") {
+            steps {
+                script {
+                       call() 
+                }
             }
         }
 
