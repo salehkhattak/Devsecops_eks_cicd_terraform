@@ -5,9 +5,11 @@ pipeline {
     agent { label "dev" }
 
     environment {
-        IMAGE_NAME = "three-tier-flask-app"
+        APP_NAME = "myflask-app"
+        DOCKER_IMAGE = "salehktk005/myflask-app"
         DOCKER_CREDENTIALS = "dockerHubCreds"
         SONAR_SERVER = "SonarQube"
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -17,6 +19,12 @@ pipeline {
                 script {
                     clone("https://github.com/salehktk005/flask-sql-app.git", "main")
                 }
+            }
+        }
+
+        stage("Docker Check") {
+            steps {
+                sh "docker --version"
             }
         }
 
@@ -36,72 +44,58 @@ pipeline {
             }
         }
 
-        stage("Trivy File System Scan") {
+        stage("Trivy FS Scan") {
             steps {
                 script {
                     trivy_fs()
-                    trivy_image()
                 }
             }
         }
 
         stage("Build Docker Image") {
             steps {
-                sh "docker build -t ${IMAGE_NAME} ."
+                sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
             }
         }
 
         stage("Trivy Image Scan") {
             steps {
+                sh "trivy image ${DOCKER_IMAGE}:${IMAGE_TAG}"
+            }
+        }
+
+        stage("Push to DockerHub") {
+            steps {
                 script {
-                    trivy_image("${IMAGE_NAME}")
+                    docker_push("${DOCKER_CREDENTIALS}", "${DOCKER_IMAGE}:${IMAGE_TAG}")
                 }
             }
         }
 
-        stage("Test") {
-            steps {
-                echo "Developer / Tester tests likh ke dega..."
-            }
-        }
-
-        stage("Push to Docker Hub") {
+        stage("Deploy to Kubernetes") {
             steps {
                 script {
-                    docker_push("${DOCKER_CREDENTIALS}", "${IMAGE_NAME}")
+                    k8s_deploy("${DOCKER_IMAGE}:${IMAGE_TAG}")
                 }
-            }
-        }
-
-        stage("Deploy") {
-            steps {
-                sh "docker compose up -d --build flask-app"
             }
         }
     }
 
     post {
-
         success {
-            script {
-                emailext(
-                    from: 'salehktk9@gmail.com',
-                    to: 'salehktk005@gmail.com',
-                    subject: "SUCCESS: CI/CD Pipeline",
-                    body: "Build SUCCESS for ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                )
-            }
+            emailext(
+                to: 'salehktk005@gmail.com',
+                subject: "SUCCESS: Build ${BUILD_NUMBER}",
+                body: "Deployment SUCCESSFUL for ${APP_NAME}:${BUILD_NUMBER}"
+            )
         }
 
         failure {
-            script {
-                emailext(
-                    from: 'salehktk9@gmail.com',
-                    to: 'salehktk005@gmail.com',
-                    subject: "FAILED: CI/CD Pipeline",
-                    body: "Build FAILED for ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                )
-            }
+            emailext(
+                to: 'salehktk005@gmail.com',
+                subject: "FAILED: Build ${BUILD_NUMBER}",
+                body: "Pipeline FAILED for ${APP_NAME}:${BUILD_NUMBER}"
+            )
         }
     }
 }
