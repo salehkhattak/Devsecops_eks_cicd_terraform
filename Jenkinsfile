@@ -11,13 +11,12 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
-    stages {
+        stages {
 
         stage("Code Clone") {
             steps {
-                script {
-                    clone("https://github.com/salehkhattak/Devsecops_eks_cicd_terraform.git", "main")
-                }
+                git branch: 'main',
+                    url: 'https://github.com/salehkhattak/Devsecops_eks_cicd_terraform.git'
             }
         }
 
