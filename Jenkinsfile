@@ -8,7 +8,6 @@ pipeline {
         APP_NAME = "myflask-app"
         DOCKER_IMAGE = "salehktk005/myflask-app"
         DOCKER_CREDENTIALS = "dockerHubCreds"
-        SONAR_SERVER = "SonarQube"
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
@@ -17,7 +16,7 @@ pipeline {
         stage("Code Clone") {
             steps {
                 script {
-                    clone("https://github.com/salehktk005/flask-sql-app.git", "main")
+                    clone("https://github.com/salehkhattak/Devsecops_eks_cicd_terraform.git", "main")
                 }
             }
         }
@@ -27,11 +26,18 @@ pipeline {
                 sh "docker --version"
             }
         }
+        stage("Shared Library Test") {
+            steps {
+                script {
+                    call()
+                }
+            }
+        }
 
         stage("OWASP Dependency Check") {
             steps {
                 script {
-                       call() 
+                    owaspScan()
                 }
             }
         }
@@ -39,16 +45,15 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 script {
-                    sonar_scan()
-                }   
-                
+                    sonarScan()
+                }
             }
         }
 
         stage("Trivy FS Scan") {
             steps {
                 script {
-                    trivy_fs()
+                    trivyScan()
                 }
             }
         }
@@ -81,11 +86,17 @@ pipeline {
             }
         }
     }
-        stage("Post Actions") {
-            steps {
-                echo "Pipeline completed for ${APP_NAME}:${BUILD_NUMBER}"
-            }
+
+    post {
+        success {
+            echo "SUCCESS"
         }
+
+        failure {
+            echo "FAILED"
+        }
+    }
+}
     // post {
     //     success {
     //         emailext(
@@ -103,4 +114,3 @@ pipeline {
     //         )
     //     }
     // }
-}
