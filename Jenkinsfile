@@ -2,7 +2,7 @@
 
 pipeline {
 
-    agent { label "dev" }
+    // agent { label "dev" }
 
     environment {
         APP_NAME = "myflask-app"
