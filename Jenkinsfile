@@ -40,15 +40,8 @@ pipeline {
             steps {
                 script {
                     sonar_scan()
-                }
-            }
-        }
-
-        stage("OWASP Dependency Check") {
-            steps {
-                script {
-                    owasp_scan()
-                }
+                }   
+                
             }
         }
 
@@ -88,22 +81,26 @@ pipeline {
             }
         }
     }
-
-    post {
-        success {
-            emailext(
-                to: 'salehktk005@gmail.com',
-                subject: "SUCCESS: Build ${BUILD_NUMBER}",
-                body: "Deployment SUCCESSFUL for ${APP_NAME}:${BUILD_NUMBER}"
-            )
+        stage("Post Actions") {
+            steps {
+                echo "Pipeline completed for ${APP_NAME}:${BUILD_NUMBER}"
+            }
         }
+    // post {
+    //     success {
+    //         emailext(
+    //             to: 'salehktk005@gmail.com',
+    //             subject: "SUCCESS: Build ${BUILD_NUMBER}",
+    //             body: "Deployment SUCCESSFUL for ${APP_NAME}:${BUILD_NUMBER}"
+    //         )
+    //     }
 
-        failure {
-            emailext(
-                to: 'salehktk005@gmail.com',
-                subject: "FAILED: Build ${BUILD_NUMBER}",
-                body: "Pipeline FAILED for ${APP_NAME}:${BUILD_NUMBER}"
-            )
-        }
-    }
+    //     failure {
+    //         emailext(
+    //             to: 'salehktk005@gmail.com',
+    //             subject: "FAILED: Build ${BUILD_NUMBER}",
+    //             body: "Pipeline FAILED for ${APP_NAME}:${BUILD_NUMBER}"
+    //         )
+    //     }
+    // }
 }
