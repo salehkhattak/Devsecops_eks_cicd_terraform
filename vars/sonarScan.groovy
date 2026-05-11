@@ -1,14 +1,13 @@
 def call() {
     echo "Running SonarQube analysis..."
-    withSonarQubeEnv('SonarQube') {
-        sh """
-            sonar-scanner \
-                -Dsonar.projectKey=three-tier-flask-app \
-                -Dsonar.sources=. \
-                -Dsonar.exclusions=**/mysql-data/**,**/.git/**,**/node_modules/** \
-                -Dsonar.python.version=3.9 \
-                -Dsonar.sourceEncoding=UTF-8
-        """
-    }
+
+    sh """
+        docker run --rm \
+        -e SONAR_HOST_URL="http://sonarqube:9000" \
+        -e SONAR_LOGIN="YOUR_SONAR_TOKEN" \
+        -v \$PWD:/usr/src \
+        sonarsource/sonar-scanner-cli
+    """
+
     echo "SonarQube analysis complete!"
 }

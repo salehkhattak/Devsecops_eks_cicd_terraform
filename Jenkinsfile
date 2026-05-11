@@ -22,16 +22,19 @@ pipeline {
 
         stage("SonarQube Analysis") {
             steps {
-                script { sonarScan() }
+                script {
+                    sonarScan()
+                }
             }
         }
 
         stage("OWASP Dependency Scan") {
             steps {
-                script { owaspScan() }
+                script {
+                    owaspScan()
+                }
             }
         }
-
 
         stage("Docker Build") {
             steps {
@@ -39,31 +42,30 @@ pipeline {
             }
         }
 
-        
         stage("Docker Push") {
             steps {
-                script { dockerPush("${DOCKER_CREDENTIALS}", "${DOCKER_IMAGE}:${IMAGE_TAG}") }
+                script {
+                    dockerPush("${DOCKER_CREDENTIALS}", "${DOCKER_IMAGE}:${IMAGE_TAG}")
+                }
             }
         }
 
-        stage("Deploy on k8s") {
+        stage("Deploy on K8s") {
             steps {
-                script { k8sDeploy("${DOCKER_IMAGE}:${IMAGE_TAG}") }
+                script {
+                    k8sDeploy("${DOCKER_IMAGE}:${IMAGE_TAG}")
+                }
             }
         }
     }
 
     post {
         success {
-          
-                sh "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}"
-            
+            echo "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}"
         }
 
         failure {
-           
-            sh "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}"
-            
+            echo "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}"
         }
 
         always {
