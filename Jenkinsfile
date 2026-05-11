@@ -32,11 +32,6 @@ pipeline {
             }
         }
 
-        // stage("Trivy FS Scan") {
-        //     steps {
-        //         script { trivyScan() }
-        //     }
-        // }
 
         stage("Docker Build") {
             steps {
@@ -44,19 +39,14 @@ pipeline {
             }
         }
 
-        stage("Trivy Image Scan") {
-            steps {
-                script { trivyImageScan("${DOCKER_IMAGE}:${IMAGE_TAG}") }
-            }
-        }
-
+        
         stage("Docker Push") {
             steps {
                 script { dockerPush("${DOCKER_CREDENTIALS}", "${DOCKER_IMAGE}:${IMAGE_TAG}") }
             }
         }
 
-        stage("Deploy to EKS") {
+        stage("Deploy on k8s") {
             steps {
                 script { k8sDeploy("${DOCKER_IMAGE}:${IMAGE_TAG}") }
             }
@@ -65,17 +55,15 @@ pipeline {
 
     post {
         success {
-            slackSend(
-                channel: '#devops',
-                message: "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}"
-            )
+          
+                sh "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}"
+            
         }
 
         failure {
-            slackSend(
-                channel: '#devops',
-                message: "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}"
-            )
+           
+            sh "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}"
+            
         }
 
         always {
