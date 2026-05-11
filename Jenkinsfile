@@ -1,7 +1,4 @@
-@Library("Shared") _
-
 pipeline {
-
     agent any
 
     environment {
@@ -12,7 +9,6 @@ pipeline {
     }
 
     stages {
-
         stage("Code Clone") {
             steps {
                 git branch: 'main',
@@ -21,18 +17,33 @@ pipeline {
         }
 
         stage("SonarQube Analysis") {
-            steps {
-                script {
-                    sonarScan()
-                }
-            }
+    steps {
+        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+            powershell '''
+                docker run --rm `
+                    --network devsecops-eks-proj_three-tier `
+                    -e SONAR_HOST_URL=http://sonarqube:9000 `
+                    -v ${env:WORKSPACE}:/usr/src `
+                    sonarsource/sonar-scanner-cli:latest `
+                    -Dsonar.projectKey=flask-devsecops `
+                    -Dsonar.sources=/usr/src `
+                    -Dsonar.token=${env:SONAR_TOKEN}
+            '''
         }
+    }
+}
 
         stage("OWASP Dependency Scan") {
             steps {
-                script {
-                    owaspScan()
-                }
+                sh '''
+                    mkdir -p reports
+                    docker run --rm `
+                        -v ${WORKSPACE}:/src `
+                        owasp/dependency-check `
+                        --scan /src `
+                        --format HTML `
+                        --out /src/reports
+                '''
             }
         }
 
@@ -44,17 +55,27 @@ pipeline {
 
         stage("Docker Push") {
             steps {
-                script {
-                    dockerPush("${DOCKER_CREDENTIALS}", "${DOCKER_IMAGE}:${IMAGE_TAG}")
+                withCredentials([usernamePassword(
+                    credentialsId: "${DOCKER_CREDENTIALS}",
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+                        docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                        docker logout
+                    '''
                 }
             }
         }
 
         stage("Deploy on K8s") {
             steps {
-                script {
-                    k8sDeploy("${DOCKER_IMAGE}:${IMAGE_TAG}")
-                }
+                sh '''
+                    sed -i 's|image: .*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|' myk8s/app-deployment.yml
+                    kubectl apply -f myk8s/
+                    kubectl rollout status deployment/myflask-app --timeout=300s
+                '''
             }
         }
     }
@@ -63,11 +84,9 @@ pipeline {
         success {
             echo "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}"
         }
-
         failure {
             echo "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}"
         }
-
         always {
             cleanWs()
         }
