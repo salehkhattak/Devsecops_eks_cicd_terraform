@@ -5,8 +5,8 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME           = "three-tier-flask-app"
-        DOCKER_IMAGE       = "salehktk005/saleh-thoughts-app"
+        APP_NAME           = "myflask-app" 
+        DOCKER_IMAGE       = "salehktk005/myflask-app" 
         DOCKER_CREDENTIALS = "dockerHubCreds"
         IMAGE_TAG          = "${BUILD_NUMBER}"
     }
