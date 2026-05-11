@@ -5,8 +5,8 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME           = "myflask-app" 
-        DOCKER_IMAGE       = "salehktk005/myflask-app" 
+        APP_NAME           = "myflask-app"
+        DOCKER_IMAGE       = "salehktk005/myflask-app"
         DOCKER_CREDENTIALS = "dockerHubCreds"
         IMAGE_TAG          = "${BUILD_NUMBER}"
     }
@@ -20,23 +20,23 @@ pipeline {
             }
         }
 
-        stage("Trivy FS Scan") {
-            steps {
-                script { trivyScan() }
-            }
-        }
-
-        stage("OWASP Scan") {
-            steps {
-                script { owaspScan() }
-            }
-        }
-
         stage("SonarQube Analysis") {
             steps {
                 script { sonarScan() }
             }
         }
+
+        stage("OWASP Dependency Scan") {
+            steps {
+                script { owaspScan() }
+            }
+        }
+
+        // stage("Trivy FS Scan") {
+        //     steps {
+        //         script { trivyScan() }
+        //     }
+        // }
 
         stage("Docker Build") {
             steps {
@@ -65,11 +65,19 @@ pipeline {
 
     post {
         success {
-            slackSend(channel: '#devops', message: "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}")
+            slackSend(
+                channel: '#devops',
+                message: "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}"
+            )
         }
+
         failure {
-            slackSend(channel: '#devops', message: "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}")
+            slackSend(
+                channel: '#devops',
+                message: "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}"
+            )
         }
+
         always {
             cleanWs()
         }
