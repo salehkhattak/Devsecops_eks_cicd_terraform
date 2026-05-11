@@ -1,9 +1,5 @@
 def call() {
-    sh """
-    dependency-check.sh \\
-    --project "three-tier-app" \\
-    --scan . \\
-    --format HTML \\
-    --out reports
-    """
+    echo "Running OWASP Dependency Check..."
+    dependencyCheck additionalArguments: '--scan . --format HTML --out reports/owasp', odcInstallation: 'OWASP'
+    dependencyCheckPublisher pattern: 'reports/owasp/dependency-check-report.xml'
 }

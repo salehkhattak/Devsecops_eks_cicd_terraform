@@ -5,10 +5,10 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME         = "myflask-app"
-        DOCKER_IMAGE     = "salehktk005/myflask-app"
+        APP_NAME           = "three-tier-flask-app"
+        DOCKER_IMAGE       = "salehktk005/saleh-thoughts-app"
         DOCKER_CREDENTIALS = "dockerHubCreds"
-        IMAGE_TAG        = "${BUILD_NUMBER}"
+        IMAGE_TAG          = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -20,45 +20,25 @@ pipeline {
             }
         }
 
-        stage("Docker Check") {
+        stage("Trivy FS Scan") {
             steps {
-                sh "docker --version"
+                script { trivyScan() }
             }
         }
 
-        stage("Shared Library Test") {
+        stage("OWASP Scan") {
             steps {
-                script {
-                    test()
-                }
-            }
-        }
-
-        stage("OWASP Dependency Check") {
-            steps {
-                script {
-                    owaspScan()
-                }
+                script { owaspScan() }
             }
         }
 
         stage("SonarQube Analysis") {
             steps {
-                script {
-                    sonarScan()
-                }
+                script { sonarScan() }
             }
         }
 
-        stage("Trivy FS Scan") {
-            steps {
-                script {
-                    trivyScan()
-                }
-            }
-        }
-
-        stage("Build Docker Image") {
+        stage("Docker Build") {
             steps {
                 sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
             }
@@ -66,33 +46,32 @@ pipeline {
 
         stage("Trivy Image Scan") {
             steps {
-                sh "trivy image ${DOCKER_IMAGE}:${IMAGE_TAG}"
+                script { trivyImageScan("${DOCKER_IMAGE}:${IMAGE_TAG}") }
             }
         }
 
-        stage("Push to DockerHub") {
+        stage("Docker Push") {
             steps {
-                script {
-                    docker_push("${DOCKER_CREDENTIALS}", "${DOCKER_IMAGE}:${IMAGE_TAG}")
-                }
+                script { dockerPush("${DOCKER_CREDENTIALS}", "${DOCKER_IMAGE}:${IMAGE_TAG}") }
             }
         }
 
-        stage("Deploy to Kubernetes") {
+        stage("Deploy to EKS") {
             steps {
-                script {
-                    k8s_deploy("${DOCKER_IMAGE}:${IMAGE_TAG}")
-                }
+                script { k8sDeploy("${DOCKER_IMAGE}:${IMAGE_TAG}") }
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline SUCCEEDED - ${APP_NAME}:${IMAGE_TAG}"
+            slackSend(channel: '#devops', message: "✅ Build #${BUILD_NUMBER} succeeded — ${APP_NAME}:${IMAGE_TAG}")
         }
         failure {
-            echo "Pipeline FAILED - ${APP_NAME}:${IMAGE_TAG}"
+            slackSend(channel: '#devops', message: "❌ Build #${BUILD_NUMBER} failed — ${APP_NAME}")
+        }
+        always {
+            cleanWs()
         }
     }
 }
