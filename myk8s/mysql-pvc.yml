@@ -4,12 +4,8 @@ metadata:
   name: mysql-pvc
   namespace: flask-sql-namespace
 spec:
-  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi  # Matches PV capacity
-  selector:
-    matchLabels:
-      type: local  # Optional: helps bind to specific PV
+      storage: 1Gi

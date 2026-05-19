@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: saleh-thoughts-app
+  name: myflask-app
   namespace: flask-sql-namespace
   labels:
-    app: saleh-thoughts-app
+    app: myflask-app
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: saleh-thoughts-app
+      app: myflask-app
   template:
     metadata:
       labels:
-        app: saleh-thoughts-app
+        app: myflask-app
     spec:
       initContainers:
       - name: wait-for-mysql
@@ -29,8 +29,8 @@ spec:
           done
           echo "MySQL is ready!"
       containers:
-      - name: saleh-thoughts-app
-        image: salehktk005/saleh-thoughts-app:latest
+      - name: myflask-app
+        image: salehktk005/myflask-app:latest
         imagePullPolicy: Always
         env:
         - name: MYSQL_PORT
@@ -38,11 +38,20 @@ spec:
         - name: MYSQL_HOST
           value: "mysql"
         - name: MYSQL_PASSWORD
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-password
         - name: MYSQL_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-user
         - name: MYSQL_DB
-          value: "mydb"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-database
         ports:
         - containerPort: 5000
         resources:

@@ -4,7 +4,7 @@ metadata:
   name: mysql
   namespace: flask-sql-namespace
 spec:
-  replicas: 1  # Added replicas
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -20,38 +20,52 @@ spec:
         - name: MYSQL_PORT
           value: "3306"
         - name: MYSQL_ROOT_PASSWORD
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
         - name: MYSQL_DATABASE
-          value: "mydb"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-database
         - name: MYSQL_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-user
         - name: MYSQL_PASSWORD
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-password
         ports:
         - containerPort: 3306
         volumeMounts:
         - name: mysqldata
           mountPath: /var/lib/mysql
-        # Add health checks
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d/
         readinessProbe:
           exec:
             command:
-            - mysqladmin
-            - ping
-            - -uroot
-            - -padmin
+            - sh
+            - -c
+            - "mysqladmin ping -h localhost -uroot -p${MYSQL_ROOT_PASSWORD}"
           initialDelaySeconds: 30
           periodSeconds: 10
         livenessProbe:
           exec:
             command:
-            - mysqladmin
-            - ping
-            - -uroot
-            - -padmin
+            - sh
+            - -c
+            - "mysqladmin ping -h localhost -uroot -p${MYSQL_ROOT_PASSWORD}"
           initialDelaySeconds: 60
           periodSeconds: 20
       volumes:
       - name: mysqldata
         persistentVolumeClaim:
           claimName: mysql-pvc
+      - name: mysql-initdb
+        configMap:
+          name: mysql-initdb-config

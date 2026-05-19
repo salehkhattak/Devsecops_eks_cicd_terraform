@@ -1,22 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
+namespace: three-tier-app
 metadata:
-  name: three-tier-flask-app
+  name: myflask-app
   labels:
-    app: three-tier-flask-app
+    app: myflask-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: three-tier-flask-app
+      app: myflask-app
   template:
     metadata:
       labels:
-        app: three-tier-flask-app
+        app: myflask-app
     spec:
       containers:
-        - name: three-tier-flask-app
-          image: salehktk005/saleh-thoughts-app:latest
+        - name: myflask-app
+          image: salehktk005/myflask-app:latest
           env:
             - name: MYSQL_HOST
               value: mysql          # this is your mysql's service clusture IP, Make sure to change it with yours

@@ -1,14 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: saleh-thoughts-app
+  name: myflask-app
   namespace: flask-sql-namespace
 spec:
   selector:
-    app: saleh-thoughts-app
+    app: myflask-app
   ports:
     - protocol: TCP
       port: 80
       targetPort: 5000
-      nodePort: 30004
-  type: NodePort
+  type: ClusterIP

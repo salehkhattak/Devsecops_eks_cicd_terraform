@@ -41,3 +41,14 @@ module "load_balancer" {
 
   depends_on = [module.eks]
 }
+
+# ─── Jenkins EC2 Module ──────────────────────────────────────────
+module "jenkins" {
+  source = "./modules/jenkins"
+
+  vpc_id           = module.vpc.vpc_id
+  public_subnet_id = module.vpc.public_subnet_ids[0]
+  instance_type    = var.jenkins_instance_type
+  app_name         = var.app_name
+  environment      = var.environment
+}
