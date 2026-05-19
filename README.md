@@ -234,6 +234,18 @@ chmod +x deploy.sh
 
 ---
 
+### how to run
+# run full simplified deploy
+./deploy.sh
+
+# run only Terraform provisioning
+./deploy.sh provision_infra
+
+# update kubeconfig only
+./deploy.sh configure_kubectl
+
+----
+
 ## 🛠️ Notable Bugs Resolved
 
 Here is a list of major production-level bugs resolved during EKS migration:
